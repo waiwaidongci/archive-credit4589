@@ -35,6 +35,7 @@ curl --fail -X POST http://127.0.0.1:19338/api/auth/login \
 | 运算 | `POST /api/datasets/{id}/runs` 提交 `{"options":{}}` 使用默认值，`GET /api/runs/{run_id}` 轮询结果 |
 | 复核 | `POST /api/runs/{run_id}/review` 提交 `{"decision":"approved","note":"已核对来源与口径"}`，决策也可为 `rejected` |
 | 报告和分发 | `GET /api/runs/{run_id}/report` 获取带版本校验值的报告，`GET /api/runs/{run_id}/report/csv?table=…` 导出业务表。审批后 `POST /api/runs/{run_id}/deliveries` 提交 `recipient` 与带偏移的 `due_at`，由 worker 到点写入 `GET /api/inbox`；`GET /api/audit` 查询审计 |
+| 补退款出账 | 费率追溯生效后，复核员 `POST /api/settlements` 提交 `{"base_run_id":…, "revision_run_id":…}`，用已批准出账的旧批次接续一份修订批次。`GET /api/settlements` 与 `GET /api/settlements/{id}` 查回冻结的报告快照，`GET /api/settlements/{id}/csv?table=…` 导出 `settlement_lines` 或 `settlement_groups` |
 
 数据集按同名及规范化内容校验值幂等导入，新增内容形成新版本。任务和定时投递存于数据库，worker 用 Redis 唤醒并定期轮询。收件箱属于本地账号，所有授权登录账号共享分析台账，审批后报告可读取。时刻保存为 UTC，API 以 ISO 时间返回。初始表结构随 API 启动创建，数据保留在命名卷；升级已有结构需要独立迁移。
 
